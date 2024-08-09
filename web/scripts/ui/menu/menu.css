@@ -19,8 +19,12 @@
 	padding: 4px 8px;
 	box-sizing: border-box;
 	margin: 0;
+	transition: box-shadow 0.1s;
 }
 
+.comfyui-button:active {
+	box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.5);
+}
 .comfyui-button:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
@@ -326,6 +330,7 @@
 
 .comfyui-workflows-open .active {
 	font-weight: bold;
+	color: var(--primary-fg);
 }
 
 .comfyui-workflows-favorites:empty {
@@ -411,6 +416,10 @@
 	background-color: transparent;
 	color: var(--fg-color);
 	padding: 2px 4px;
+}
+
+.comfyui-workflows-tree-file.active .comfyui-workflows-file-action {
+	color: var(--primary-fg);
 }
 
 .lg ~ .comfyui-workflows-popup .comfyui-workflows-tree-file:not(:hover) .comfyui-workflows-file-action {

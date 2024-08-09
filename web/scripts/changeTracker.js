@@ -3,7 +3,6 @@
 import { api } from "./api.js";
 import { clone } from "./utils.js";
 
-
 export class ChangeTracker {
 	static MAX_HISTORY = 50;
 	#app;
@@ -106,15 +105,16 @@ export class ChangeTracker {
 		window.addEventListener(
 			"keydown",
 			(e) => {
+				const activeEl = document.activeElement;
 				requestAnimationFrame(async () => {
-					let activeEl;
+					let bindInputEl;
 					// If we are auto queue in change mode then we do want to trigger on inputs
 					if (!app.ui.autoQueueEnabled || app.ui.autoQueueMode === "instant") {
-						activeEl = document.activeElement;
 						if (activeEl?.tagName === "INPUT" || activeEl?.["type"] === "textarea") {
 							// Ignore events on inputs, they have their native history
 							return;
 						}
+						bindInputEl = activeEl;
 					}
 
 					keyIgnored = e.key === "Control" || e.key === "Shift" || e.key === "Alt" || e.key === "Meta";
@@ -124,7 +124,7 @@ export class ChangeTracker {
 					if (await changeTracker().undoRedo(e)) return;
 
 					// If our active element is some type of input then handle changes after they're done
-					if (ChangeTracker.bindInput(activeEl)) return;
+					if (ChangeTracker.bindInput(bindInputEl)) return;
 					changeTracker().checkState();
 				});
 			},
@@ -167,6 +167,19 @@ export class ChangeTracker {
 		LiteGraph.ContextMenu.prototype.close = function (e) {
 			const v = close.apply(this, arguments);
 			changeTracker().checkState();
+			return v;
+		};
+
+		// Detects nodes being added via the node search dialog
+		const onNodeAdded = LiteGraph.LGraph.prototype.onNodeAdded;
+		LiteGraph.LGraph.prototype.onNodeAdded = function () {
+			const v = onNodeAdded?.apply(this, arguments);
+			if (!app?.configuringGraph) {
+				const ct = changeTracker();
+				if (!ct.isOurLoad) {
+					ct.checkState();
+				}
+			}
 			return v;
 		};
 
